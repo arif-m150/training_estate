@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu level 1 -->
+    <menuitem id="estate_menu_root" name="Estate"/>
+
+    <!-- Menu level 2 -->
+    <menuitem id="estate_app_level_menu" 
+        parent="estate_menu_root" name="Estate"/>
+    
+    <!-- Menu level 3 -->
+    <menuitem id="estate_property_menu_action" 
+        name="Property"
+        parent="estate_app_level_menu" 
+        action="estate_property_action"/>
+
+</odoo>
