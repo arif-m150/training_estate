@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 
 
 class EstateProperty(models.Model):
@@ -32,3 +32,36 @@ class EstateProperty(models.Model):
         ('sold', 'Sold'),
         ('cancelled', 'Cancelled'),
     ], string='State', required=True, copy=False, default='new')
+    property_type_id = fields.Many2one('estate.property.type', string='Property Type')
+    partner_id = fields.Many2one('res.partner', string='Buyer', copy=False)
+    user_id = fields.Many2one('res.users', string='Salesperson', default=lambda self: self.env.uid)
+    offer_ids = fields.One2many('estate.property.offer', 'property_id', string='Offer')
+    tag_ids = fields.Many2many('estate.property.tag', string='Tags')
+    total_area = fields.Integer('Total Area', compute='_compute_total_area', store=True)
+    best_price = fields.Float('Best Price', compute='_compute_best_price')
+    
+    @api.depends('living_area','garden_area')
+    def _compute_total_area(self):
+        for rec in self:
+            rec.total_area = rec.living_area + rec.garden_area
+            
+    @api.depends('offer_ids.price')
+    def _compute_best_price(self):
+        for rec in self:
+            rec.best_price = max(rec.offer_ids.mapped('price') or [0])
+            
+    @api.onchange("garden")
+    def _onchange_garden(self):
+        if not self.garden:
+            self.garden_area = 0
+            self.garden_orientation = False
+            
+    @api.onchange("date_availability")
+    def _onchange_date_availability(self):
+        if self.date_availability < fields.Date.today():
+            return {
+                "warning": {
+                    "title": _("Warning"),
+                    "message": _("Please set a date prior than today’s")
+                }
+            }
